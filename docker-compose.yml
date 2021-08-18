@@ -1,0 +1,76 @@
+version: '3.4'
+services:
+  ############################
+  # Product + Dapr sidecar
+  ############################
+  productapp:
+    build: 
+      context: .
+      dockerfile: ProductService/Dockerfile
+    ports:
+      - "50002:50002"
+    depends_on:
+      - redis
+      - placement
+    networks:
+      - gejia
+  productapp-dapr:
+    image: "daprio/daprd:edge"
+    command: ["./daprd",
+     "-app-id", "productapp",
+     "-app-port", "80",
+     "-placement-host-address", "placement:50006",
+     "-dapr-grpc-port", "50002",
+     "-components-path", "/components"]
+    volumes:
+        - "./components/:/components"
+    depends_on:
+      - productapp
+    network_mode: "service:productapp"
+  ############################
+  # cart app + Dapr sidecar
+  ############################
+  cartapp:
+    build: 
+      context: .
+      dockerfile: CartService/Dockerfile
+    depends_on:
+      - redis
+      - placement
+    ports:
+      - "8100:80"
+    networks:
+      - gejia
+  cartapp-dapr:
+    image: "daprio/daprd:edge"
+    command: ["./daprd",
+    "-app-id", "cartapp",
+    "-app-port", "80",
+    "-placement-host-address", "placement:50006",
+     "-components-path", "/components"]
+    volumes:
+      - "./components/:/components"
+    depends_on:
+      - cartapp
+    network_mode: "service:cartapp"
+  ############################
+  # Dapr placement service
+  ############################
+  placement:
+    image: "daprio/dapr"
+    command: ["./placement", "-port", "50006"]
+    ports:
+      - "50006:50006"
+    networks:
+      - gejia
+  ############################
+  # Redis state store
+  ############################
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6380:6379"
+    networks:
+      - gejia
+networks:
+    gejia:

@@ -1,0 +1,33 @@
+stages:
+    - down
+    - build
+    - up
+down:
+    stage: down
+    script:
+        - docker-compose down
+    interruptible: true
+    tags:
+        - d1
+    only:
+        - master
+build:
+    stage: build
+    script:
+        - docker-compose build
+    interruptible: true
+    tags:
+        - d1
+    only:
+        - master
+
+up:
+    stage: up
+    script:
+        - docker-compose up
+    interruptible: true
+    tags:
+        - d1
+    only:
+        - master
+
