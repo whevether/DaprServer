@@ -24,7 +24,7 @@ build:
 up:
     stage: up
     script:
-        - docker-compose up
+        - docker-compose up -d
     interruptible: true
     tags:
         - d1
